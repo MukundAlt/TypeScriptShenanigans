@@ -1,0 +1,50 @@
+name: Build and Deploy p5.js Project
+
+on:
+  push:
+    branches:
+      - main        # Trigger workflow on push to the main branch
+  pull_request:
+    branches:
+      - main        # Trigger workflow on pull requests targeting the main branch
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      # Checkout the code
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      # Set up Node.js environment
+      - name: Set up Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: '16'  # Specify your Node.js version here- this is wrong rn
+
+      # Install dependencies
+      - name: Install dependencies
+        run: |
+          npm ci  # Or `npm install` if you prefer
+          
+      # Build the project using Webpack
+      - name: Build project
+        run: |
+          npm run build  # Assumes you have a build script in package.json
+
+      # Deploy to GitHub Pages (if using GitHub Pages)
+      - name: Deploy to GitHub Pages
+        uses: JamesIves/github-pages-deploy-action@v4
+        with:
+          branch: gh-pages         # GitHub Pages branch to deploy to
+          folder: dist             # Folder containing the built files (usually the Webpack output)
+
+      # Optionally: Add a cache step to speed up the next build
+      - name: Cache Node.js modules
+        uses: actions/cache@v3
+        with:
+          path: node_modules
+          key: ${{ runner.os }}-node-${{ hashFiles('**/package-lock.json') }}
+          restore-keys: |
+            ${{ runner.os }}-node-
